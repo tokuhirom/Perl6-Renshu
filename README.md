@@ -10,3 +10,26 @@ This is my excersise code for Perl6.
 
 あるいは､なにか古くなったりするかもしれませんので､そういう場合にもお伝え願えればと思います｡
 
+## Perl6 って動くの?
+
+意外と動きます｡
+
+動くもの:
+
+  * TCP Soccket
+
+## どの実装で動作確認してるの?
+
+Rakudo + MoarVM ですべて確認してます｡
+他でもたぶん動くだろうけど､ MoarVM + Rakudo でだけ動作確認してます｡
+
+## TODO
+
+  * fork って動くのかためしたい
+  * Pre-fork の http server を書いてみたい
+  * 組み込みメソッドのサンプルとかほしい
+
+## CONTRIBUTIONS
+
+参加したい人はコミットビットあげるので､issues かなにかで言ってください｡
+
