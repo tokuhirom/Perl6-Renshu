@@ -17,6 +17,13 @@ This is my excersise code for Perl6.
 動くもの:
 
   * TCP Soccket
+  * などなど｡
+
+## Perl6 どうやってためしたらいいの?
+
+rakudo のレポジトリを clone して以下をうてばよいです｡
+
+    perl Configure.pl --gen-nqp=master --backends=moar --gen-moar=master
 
 ## どの実装で動作確認してるの?
 
