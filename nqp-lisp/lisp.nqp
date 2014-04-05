@@ -15,7 +15,7 @@ grammar SakuraLisp::Grammar is HLL::Grammar {
             || <.panic('Syntax error')>
     }
 
-    token num { \d+ }
+    token num { \d+ [ '.' \d+ ]? }
     token op { '+' | '-' | '*' | '/' | 'print' | 'say' }
     rule func { '(' <op> <exp>* ')' }
     rule exp { <func> | <num> }
@@ -44,7 +44,7 @@ class SakuraLisp::Actions is HLL::Actions {
 
     method exp($/) {
         if $<num> {
-            make QAST::IVal.new(:value(+$/.Str));
+            make QAST::NVal.new(:value(+$/.Str));
         } elsif $<func> {
             make $<func>.ast;
         } else {

@@ -105,3 +105,9 @@ __END__
 --- expected
 256
 
+===
+--- input
+(print (* 3.14 2))
+--- expected
+6.28
+
