@@ -1,4 +1,4 @@
-nqp-list
+nqp-lisp
 ========
 
 NQP を使って作られた lisp 処理系､のプロトタイプです｡
