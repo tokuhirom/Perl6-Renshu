@@ -29,3 +29,9 @@ src/HLL/Compiler.nqp の eval() があやしいね｡
 
 → とりあえずワークアラウンドいれてある｡SakuraLisp::Compiler#eval に｡
 
+## 開発メモ
+
+    say($<exp>.dump());
+
+のようにすると､ノードのダンプデータがとれる｡
+

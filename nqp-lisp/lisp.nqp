@@ -16,9 +16,11 @@ grammar SakuraLisp::Grammar is HLL::Grammar {
     }
 
     token num { \d+ [ '.' \d+ ]? }
-    token op { '+' | '-' | '*' | '/' | 'print' | 'say' }
+    # quote_EXPR ってのはなんかプリセットっぽいやつ｡
+    token str { <?["]> <quote_EXPR: ':qq'> }
+    token op { '~' | '+' | '-' | '*' | '/' | 'print' | 'say' }
     rule func { '(' <op> <exp>* ')' }
-    rule exp { <func> | <num> }
+    rule exp { <func> | <num> | <str> }
     rule sexplist { <exp>* }
 }
 
@@ -45,6 +47,8 @@ class SakuraLisp::Actions is HLL::Actions {
     method exp($/) {
         if $<num> {
             make QAST::NVal.new(:value(+$/.Str));
+        } elsif $<str> {
+            make $<str>.ast;
         } elsif $<func> {
             make $<func>.ast;
         } else {
@@ -52,11 +56,22 @@ class SakuraLisp::Actions is HLL::Actions {
         }
     }
 
+    method str($/) {
+        make $<quote_EXPR>.ast;
+    }
+
     method func($/) {
         if $<op> eq "+" {
             my $ast := QAST::IVal.new(:value(0));
             for $<exp> {
                 $ast := QAST::Op.new(:op<add_n>, $ast, $_.ast);
+            }
+            make $ast;
+        } elsif $<op> eq "~" {
+            # これ､動きそうだけど全く動かない｡
+            my $ast := nqp::shift($<exp>);
+            for $<exp> {
+                $ast := QAST::Op.new(:op<concat>, $ast, $_.ast);
             }
             make $ast;
         } elsif $<op> eq "-" {

@@ -111,3 +111,21 @@ __END__
 --- expected
 6.28
 
+===
+--- input
+(print (+ (* 3.14 2) 4))
+--- expected
+10.28
+
+===
+--- input
+(print "hoge")
+--- expected
+hoge
+
+===
+--- SKIP
+--- input
+(print "hoge")
+--- expected
+hoge
