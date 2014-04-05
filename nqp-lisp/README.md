@@ -27,3 +27,5 @@ nqp-m 使った時に､`nqp-m lisp.nqp -e 0` みたいにすると以下の様�
 
 src/HLL/Compiler.nqp の eval() があやしいね｡
 
+→ とりあえずワークアラウンドいれてある｡SakuraLisp::Compiler#eval に｡
+
