@@ -17,7 +17,7 @@ grammar SakuraLisp::Grammar is HLL::Grammar {
 
     token num { \d+ }
     token op { '+' | '-' | '*' | '/' | 'print' | 'say' }
-    rule func { '(' <op> <exp>+ ')' }
+    rule func { '(' <op> <exp>* ')' }
     rule exp { <func> | <num> }
     rule sexplist { <exp>* }
 }
@@ -54,17 +54,36 @@ class SakuraLisp::Actions is HLL::Actions {
 
     method func($/) {
         if $<op> eq "+" {
-            if nqp::elems($<exp>) == 2 {
-                make QAST::Op.new(:op<add_n>, $<exp>[0].ast, $<exp>[1].ast);
-            } else {
-                # support (+ 3 2 4)
-                my $ast := $<exp>[0].ast;
-                my @exp := $<exp>;
-                nqp::shift(@exp);
-                for @exp {
-                    $ast := QAST::Op.new(:op<add_n>, $ast, $_.ast);
+            my $ast := QAST::IVal.new(:value(0));
+            for $<exp> {
+                $ast := QAST::Op.new(:op<add_n>, $ast, $_.ast);
+            }
+            make $ast;
+        } elsif $<op> eq "-" {
+            my $ast := (
+                nqp::elems($<exp>) <= 1
+                ?? QAST::IVal.new(:value(0))
+                !! nqp::shift($<exp>).ast
+            );
+            for $<exp> {
+                $ast := QAST::Op.new(:op<sub_n>, $ast, $_.ast);
+            }
+            make $ast;
+        } elsif $<op> eq "*" {
+            my $ast := QAST::IVal.new(:value(1));
+            for $<exp> {
+                $ast := QAST::Op.new(:op<mul_n>, $ast, $_.ast);
+            }
+            make $ast;
+        } elsif $<op> eq "/" {
+            if $<exp> >= 2 {
+                my $ast := nqp::shift($<exp>).ast;
+                for $<exp> {
+                    $ast := QAST::Op.new(:op<div_n>, $ast, $_.ast);
                 }
                 make $ast;
+            } else {
+                nqp::die("Wrong number of arguments for '/'");
             }
         } elsif $<op> eq "say" {
             my $stmts := QAST::Stmts.new( :node($/) );
@@ -89,7 +108,7 @@ class SakuraLisp::Actions is HLL::Actions {
             }
             make $stmts;
         } else {
-            nqp::die("Oops");
+            nqp::die("Unknown function name: " ~ $<op>);
         }
     }
 }

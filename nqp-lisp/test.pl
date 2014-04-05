@@ -35,6 +35,12 @@ __END__
 
 ===
 --- input
+(print (+))
+--- expected
+0
+
+===
+--- input
 (print (+ 5 4))
 --- expected
 9
@@ -44,4 +50,58 @@ __END__
 (print (+ 5 4 3))
 --- expected
 12
+
+===
+--- input
+(print (-))
+--- expected
+0
+
+===
+--- input
+(print (- 3))
+--- expected
+-3
+
+===
+--- input
+(print (- 3 9))
+--- expected
+-6
+
+===
+--- input
+(print (- 3 9 4))
+--- expected
+-10
+
+===
+--- input
+(print (*))
+--- expected
+1
+
+===
+--- input
+(print (* 2 4))
+--- expected
+8
+
+===
+--- input
+(print (* 5 4 3))
+--- expected
+60
+
+===
+--- input
+(print (/ 1024 2))
+--- expected
+512
+
+===
+--- input
+(print (/ 1024 2 2))
+--- expected
+256
 
