@@ -16,7 +16,7 @@ grammar SakuraLisp::Grammar is HLL::Grammar {
     }
 
     token num { \d+ }
-    token op { '+' | '-' | '*' | '/' }
+    token op { '+' | '-' | '*' | '/' | 'print' | 'say' }
     rule func { '(' <op> <exp>+ ')' }
     rule exp { <func> | <num> }
     rule sexplist { <exp>* }
@@ -43,7 +43,48 @@ class SakuraLisp::Actions is HLL::Actions {
     }
 
     method exp($/) {
-        make QAST::Op.new(:op<print>, QAST::IVal.new(:value(5963)));
+        if $<num> {
+            make QAST::IVal.new(:value(+$/.Str));
+        } elsif $<func> {
+            make $<func>.ast;
+        } else {
+            nqp::die("Oops");
+        }
+    }
+
+    method func($/) {
+        if $<op> eq "+" {
+            if nqp::elems($<exp>) == 2 {
+                make QAST::Op.new(:op<add_n>, $<exp>[0].ast, $<exp>[1].ast);
+            } else {
+                # support (+ 3 2 4)
+                nqp::die("Bad argument count for '+'");
+            }
+        } elsif $<op> eq "say" {
+            my $stmts := QAST::Stmts.new( :node($/) );
+            for $<exp> {
+                $stmts.push(
+                    QAST::Op.new(
+                        :op<say>,
+                        $_.ast
+                    )
+                );
+            }
+            make $stmts;
+        } elsif $<op> eq "print" {
+            my $stmts := QAST::Stmts.new( :node($/) );
+            for $<exp> {
+                $stmts.push(
+                    QAST::Op.new(
+                        :op<print>,
+                        $_.ast
+                    )
+                );
+            }
+            make $stmts;
+        } else {
+            nqp::die("Oops");
+        }
     }
 }
 
