@@ -58,7 +58,13 @@ class SakuraLisp::Actions is HLL::Actions {
                 make QAST::Op.new(:op<add_n>, $<exp>[0].ast, $<exp>[1].ast);
             } else {
                 # support (+ 3 2 4)
-                nqp::die("Bad argument count for '+'");
+                my $ast := $<exp>[0].ast;
+                my @exp := $<exp>;
+                nqp::shift(@exp);
+                for @exp {
+                    $ast := QAST::Op.new(:op<add_n>, $ast, $_.ast);
+                }
+                make $ast;
             }
         } elsif $<op> eq "say" {
             my $stmts := QAST::Stmts.new( :node($/) );
@@ -89,14 +95,68 @@ class SakuraLisp::Actions is HLL::Actions {
 }
 
 # これはからっぽでいいみたい｡
+#
+# HLL::Compiler の定義は src/HLL/Compiler.nqp  にあります｡
 class SakuraLisp::Compiler is HLL::Compiler {
+    has $!backend;
+
+    # REPL モードのときに表示するプロンプト
+    method interactive_prompt() { 'lisp> ' }
+
+    # REPL モードのときに､評価結果を表示する
+    method interactive_result($value) {
+        nqp::say(">>> " ~ ~$value)
+    }
+
+    # 評価する｡なぜか MoarVM んときに -e とかファイルからとかの読み込みがうまくいかないという
+    # 謎現象が起きておりまして､とりあえずのワークアラウンドを入れている｡
+    # どうしたらいいのかよくわからん｡
+    method eval($code, *@args, *%adverbs) {
+        my $output;
+        $!backend := self.default_backend();
+
+        if (%adverbs<profile-compile>) {
+            $output := $!backend.run_profiled({
+                self.compile($code, :compunit_ok(1), |%adverbs);
+            });
+        }
+        else {
+            $output := self.compile($code, :compunit_ok(1), |%adverbs);
+        }
+
+        if $!backend.is_compunit($output) && %adverbs<target> eq '' {
+            my $outer_ctx := %adverbs<outer_ctx>;
+            $output := $!backend.compunit_mainline($output);
+            if nqp::defined($outer_ctx) {
+                nqp::forceouterctx($output, $outer_ctx);
+            }
+
+            if (%adverbs<profile>) {
+                $output := $!backend.run_profiled({ $output(|@args) });
+            }
+            elsif %adverbs<trace> {
+                $output := $!backend.run_traced(%adverbs<trace>, { $output(|@args) });
+            }
+            else {
+                nqp::shift(@args); # ← これがワークアラウンド
+                $output := $output(|@args);
+            }
+        }
+
+        $output;
+    }
 }
 
 sub MAIN(*@ARGS) {
+    # コンパイラを設定します｡
     my $comp := SakuraLisp::Compiler.new();
     $comp.language('lisp');
+    # グラマーを設定
     $comp.parsegrammar(SakuraLisp::Grammar);
+    # アクションを設定
     $comp.parseactions(SakuraLisp::Actions);
+
+    # ベーシックな挙動をして欲しい場合は command_line メソッドを呼べばOKです｡
     $comp.command_line(@ARGS, :encoding('utf8'));
 }
 

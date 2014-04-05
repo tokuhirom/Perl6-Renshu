@@ -10,3 +10,14 @@ MoarVM のバイトコードに変換したいときには以下のようにす�
 
     ./nqp-m --target=mbc --output=hello.moarvm examples/hello_world.nqp
 
+## `#?if` ってのはなに?
+
+tools/build/gen-cat.pl 用の命令です｡NQP は基本､これを使って1つのファイルにくっつけてからコンパイルがかかるのです｡
+
+    #?if parrot
+    #?endif
+
+    #?if !parrot
+    #?endif
+
+のようにして使います｡
