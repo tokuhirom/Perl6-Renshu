@@ -126,6 +126,14 @@ hoge
 ===
 --- SKIP
 --- input
-(print "hoge")
+(print (~ "ho" "ge))
 --- expected
 hoge
+
+===
+--- input
+(print "ho")
+(print "ge")
+--- expected
+hoge
+
