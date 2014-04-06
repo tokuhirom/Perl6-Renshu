@@ -15,17 +15,22 @@ grammar SakuraLisp::Grammar is HLL::Grammar {
             || <.panic('Syntax error')>
     }
 
+    token variable { '$' <ident> }
     token num { \d+ [ '.' \d+ ]? }
     # quote_EXPR ってのはなんかプリセットっぽいやつ｡
     token str { <?["]> <quote_EXPR: ':qq'> }
     token op { '~' | '+' | '-' | '*' | '/' | 'print' | 'say' | 'exit' | 'abort' | 'time' | 'sha1' }
-    rule func { '(' <op> <exp>* ')' }
+
+    proto token func {*}
+    rule func:sym<define> { '(' 'define' <variable> <exp> ')' }
+    rule func:sym<op> { '(' <op> <exp>* ')' }
 
     # こういうふうに書くと､multi dispatch っぽくできる｡
     proto token exp {*}
     rule exp:sym<func> { <func> }
     rule exp:sym<num>  { <num>  }
     rule exp:sym<str>  { <str>  }
+    rule exp:sym<variable>  { <variable>  }
 
     rule sexplist { <exp>* }
 }
@@ -62,11 +67,27 @@ class SakuraLisp::Actions is HLL::Actions {
         make $<func>.ast;
     }
 
+    method exp:sym<variable>($/) {
+        make $<variable>.ast;
+    }
+
+    method variable($/) {
+        make QAST::Var.new(:name(~$/), :scope('lexical'));
+    }
+
     method str($/) {
         make $<quote_EXPR>.ast;
     }
 
-    method func($/) {
+    method func:sym<define>($/) {
+        make QAST::Op.new(
+            :op<bind>,
+            QAST::Var.new(:name($<variable>), :scope('lexical'), :decl('var')),
+            $<exp>.ast
+        );
+    }
+
+    method func:sym<op>($/) {
         if $<op> eq "+" {
             my $ast := QAST::IVal.new(:value(0));
             for $<exp> {

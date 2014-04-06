@@ -137,3 +137,29 @@ hoge
 --- expected
 hoge
 
+===
+--- input
+(define $x 3)
+--- expected
+
+===
+--- input
+(define $x 3)
+(print $x)
+--- expected
+3
+
+===
+--- input
+(define $x 3)
+(print (* 2 $x))
+--- expected
+6
+
+===
+--- input
+(define $x 3)
+(print (* $x $x))
+--- expected
+9
+
