@@ -1,16 +1,13 @@
-all: test
+all: lib/lisp.moarvm
 
 test: lib/lisp.moarvm
-	perl -Ilib test.pl
+	prove -vr t/
 
 lib/lisp.moarvm: lisp.nqp
 	nqp-m --target=mbc --output=lib/lisp.moarvm lisp.nqp
 
-lib/lisp.pir: lisp.nqp
-	nqp-p --target=pir --no-regex-lib --output=lib/lisp.pir lisp.nqp
-
 clean:
-	rm -f lib/lisp.moarvm lib/lisp.pir
+	rm -f lib/lisp.moarvm
 
 .PHONY: clean all
 
