@@ -18,7 +18,7 @@ grammar SakuraLisp::Grammar is HLL::Grammar {
     token num { \d+ [ '.' \d+ ]? }
     # quote_EXPR ってのはなんかプリセットっぽいやつ｡
     token str { <?["]> <quote_EXPR: ':qq'> }
-    token op { '~' | '+' | '-' | '*' | '/' | 'print' | 'say' }
+    token op { '~' | '+' | '-' | '*' | '/' | 'print' | 'say' | 'exit' }
     rule func { '(' <op> <exp>* ')' }
     rule exp { <func> | <num> | <str> }
     rule sexplist { <exp>* }
@@ -111,6 +111,20 @@ class SakuraLisp::Actions is HLL::Actions {
                 );
             }
             make $stmts;
+        } elsif $<op> eq "exit" {
+            if +$<exp> == 0 {
+                make QAST::Op.new(
+                    :op<exit>,
+                    QAST::IVal.new(:value(0))
+                );
+            } elsif +$<exp> == 1 {
+                make QAST::Op.new(
+                    :op<exit>,
+                    $<exp>[0].ast
+                );
+            } else {
+                nqp::die("Too much arguments for 'exit'");
+            }
         } elsif $<op> eq "print" {
             my $stmts := QAST::Stmts.new( :node($/) );
             for $<exp> {
@@ -181,7 +195,7 @@ class SakuraLisp::Compiler is HLL::Compiler {
     }
 }
 
-sub MAIN(*@ARGS) {
+sub MAIN(@ARGS) {
     # コンパイラを設定します｡
     my $comp := SakuraLisp::Compiler.new();
     $comp.language('lisp');

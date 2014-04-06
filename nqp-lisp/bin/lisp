@@ -1,0 +1,3 @@
+#!/bin/sh
+PREFIX=$(dirname $(dirname $(which nqp-m)))
+exec $PREFIX/bin/moar --libpath="$PREFIX/languages/nqp/lib" --libpath="$PREFIX/languages/perl6/lib" --libpath="$PREFIX/languages/perl6/runtime" lib/lisp.moarvm "$@"

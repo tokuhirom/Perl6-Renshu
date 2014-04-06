@@ -25,7 +25,7 @@ sub eval_lisp {
     my $code = shift;
 
     my ($stdout, $stderr, $exit) = capture {
-        system('nqp-m', 'lisp.nqp', '-e', $code)
+        system('./bin/lisp', '-e', $code)
     };
     diag $stderr if $stderr;
     return $stdout;
