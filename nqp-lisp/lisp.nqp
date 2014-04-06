@@ -20,7 +20,13 @@ grammar SakuraLisp::Grammar is HLL::Grammar {
     token str { <?["]> <quote_EXPR: ':qq'> }
     token op { '~' | '+' | '-' | '*' | '/' | 'print' | 'say' | 'exit' | 'abort' | 'time' | 'sha1' }
     rule func { '(' <op> <exp>* ')' }
-    rule exp { <func> | <num> | <str> }
+
+    # こういうふうに書くと､multi dispatch っぽくできる｡
+    proto token exp {*}
+    rule exp:sym<func> { <func> }
+    rule exp:sym<num>  { <num>  }
+    rule exp:sym<str>  { <str>  }
+
     rule sexplist { <exp>* }
 }
 
@@ -44,16 +50,16 @@ class SakuraLisp::Actions is HLL::Actions {
         make $stmts;
     }
 
-    method exp($/) {
-        if $<num> {
-            make QAST::NVal.new(:value(+$/.Str));
-        } elsif $<str> {
-            make $<str>.ast;
-        } elsif $<func> {
-            make $<func>.ast;
-        } else {
-            nqp::die("Oops");
-        }
+    method exp:sym<num>($/) {
+        make QAST::NVal.new(:value(+$/.Str));
+    }
+
+    method exp:sym<str>($/) {
+        make $<str>.ast;
+    }
+
+    method exp:sym<func>($/) {
+        make $<func>.ast;
     }
 
     method str($/) {
