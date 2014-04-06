@@ -163,3 +163,10 @@ hoge
 --- expected
 9
 
+===
+--- input
+(define $x 3)
+(define $y 4.2)
+(print (* $x $y))
+--- expected
+12.6
