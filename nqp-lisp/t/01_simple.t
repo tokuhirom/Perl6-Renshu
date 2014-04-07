@@ -170,3 +170,12 @@ hoge
 (print (* $x $y))
 --- expected
 12.6
+
+===
+--- input
+(say (if 0 4649 5963))
+(print (if 1 4649 5963))
+--- expected
+5963
+4649
+

@@ -23,6 +23,8 @@ grammar SakuraLisp::Grammar is HLL::Grammar {
 
     proto token func {*}
     rule func:sym<define> { '(' 'define' <variable> <exp> ')' }
+    # (if cond then else)
+    rule func:sym<if> { '(' 'if' <exp> <exp> <exp>? ')' }
     rule func:sym<op> { '(' <op> <exp>* ')' }
 
     # こういうふうに書くと､multi dispatch っぽくできる｡
@@ -85,6 +87,30 @@ class SakuraLisp::Actions is HLL::Actions {
             QAST::Var.new(:name($<variable>), :scope('lexical'), :decl('var')),
             $<exp>.ast
         );
+    }
+
+    method func:sym<if>($/) {
+        my $op := QAST::Op.new(
+            :op<if>,
+            block_immediate(QAST::Block.new($<exp>[0].ast)),
+            block_immediate(QAST::Block.new($<exp>[1].ast)),
+            :node($/)
+        );
+        if nqp::elems($<exp>) == 3 {
+            $op.push(block_immediate(QAST::Block.new($<exp>[2].ast)));
+        }
+        make $op;
+    }
+
+    # Ref. src/NQP/Actions.nqp
+    sub block_immediate($block) {
+        $block.blocktype('immediate');
+        unless $block.symtable() {
+            my $stmts := QAST::Stmts.new( :node($block.node) );
+            for $block.list { $stmts.push($_); }
+            $block := $stmts;
+        }
+        $block;
     }
 
     method func:sym<op>($/) {
@@ -225,8 +251,9 @@ class SakuraLisp::Compiler is HLL::Compiler {
                 $output := $!backend.run_traced(%adverbs<trace>, { $output(|@args) });
             }
             else {
-                nqp::shift(@args); # ← これがワークアラウンド
-                $output := $output(|@args);
+                # ↓ これがワークアラウンド
+                # $output := $output(|@args);
+                $output := $output();
             }
         }
 
