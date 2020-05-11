@@ -261,7 +261,7 @@ class SakuraLisp::Compiler is HLL::Compiler {
     }
 }
 
-sub MAIN(@ARGS) {
+sub MAIN(*@ARGS) {
     # コンパイラを設定します｡
     my $comp := SakuraLisp::Compiler.new();
     $comp.language('lisp');
