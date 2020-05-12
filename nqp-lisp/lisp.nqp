@@ -58,7 +58,7 @@ class SakuraLisp::Actions is HLL::Actions {
     }
 
     method exp:sym<num>($/) {
-        make QAST::NVal.new(:value(+$/.Str));
+        make QAST::NVal.new(:value(nqp::numify($/.Str)));
     }
 
     method exp:sym<str>($/) {
@@ -261,7 +261,7 @@ class SakuraLisp::Compiler is HLL::Compiler {
     }
 }
 
-sub MAIN(@ARGS) {
+sub MAIN(*@ARGS) {
     # コンパイラを設定します｡
     my $comp := SakuraLisp::Compiler.new();
     $comp.language('lisp');
